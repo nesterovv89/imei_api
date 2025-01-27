@@ -37,16 +37,19 @@ async def start(message: types.Message):
             reply_markup=k.keyboard
         )
     else:
-        await message.answer(text='Вас нет в списке пользователей, добавиться в список для тестового использования можно по кнопке ниже:',
+        await message.answer(text='Вас нет в списке пользователей, добавиться '
+                             'в список для тестового использования можно по кнопке ниже:',
                              reply_markup=k.keyboard_2)
-        
+
 
 @router.callback_query(F.data == 'test')
 async def approved_start(callback: types.CallbackQuery):
     """Кнопка добавления в БД на тест"""
     await add_user_to_whitelist(user_id=callback.from_user.id)
     await callback.message.edit_reply_markup(reply_markup=None)
-    await callback.message.answer(text=f'{callback.from_user.full_name}, Вы успешно добавлены в whitelist, функционал доступен:', reply_markup=k.keyboard)
+    await callback.message.answer(
+        text=f'{callback.from_user.full_name}, Вы успешно добавлены в whitelist, функционал доступен:', reply_markup=k.keyboard
+    )
 
 
 @router.callback_query(F.data == 'get')
@@ -66,15 +69,21 @@ async def handle_imei(message: types.Message, state: FSMContext):
 
     async with ClientSession() as session:
 
-        response = await fetch(session, f'{BACKEND_API_URL}/api/check-imei', data=params, method='POST', headers=headers)
+        response = await fetch(
+            session, f'{BACKEND_API_URL}/api/check-imei', data=params, method='POST', headers=headers
+        )
         services = [ServiceItem(**item) for item in response['services']]
         balance = response['balance']
         formatted_services = []
         builder = InlineKeyboardBuilder()
         try:
             for service in services:
-                formatted_services.append(f'{service.id}. {service.title}. Price = {service.price} USD')
-                builder.button(text=f'Купить {service.title}', callback_data=f'buy_{service.id}')
+                formatted_services.append(
+                    f'{service.id}. {service.title}. Price = {service.price} USD'
+                )
+                builder.button(
+                    text=f'Купить {service.title}', callback_data=f'buy_{service.id}'
+                )
             builder.adjust(1)
             message_text = (
                             f'Доступные услуги для IMEI: {imei}\n'
@@ -82,16 +91,20 @@ async def handle_imei(message: types.Message, state: FSMContext):
                             f'Список услуг:\n'
                             f'{chr(10).join(formatted_services)}\n'
                             )
-            await message.answer(message_text, reply_markup=builder.as_markup())
+            await message.answer(
+                message_text, reply_markup=builder.as_markup()
+            )
             await state.update_data(imei=imei)
             await state.set_state(Imei.service_id)
         except Exception as e:
             await message.answer(f'Ошибка: {e}')
 
+
 @router.message(Imei.imei)
 async def handle_invalid_imei(message: types.Message):
-    await message.answer('Неверный формат IMEI. IMEI должен содержать от 8 до 15 цифр.')
-
+    await message.answer(
+        'Неверный формат IMEI. IMEI должен содержать от 8 до 15 цифр.'
+    )
 
 
 @router.callback_query(F.data.startswith('buy_'), Imei.service_id)
@@ -105,12 +118,18 @@ async def buy_service(callback: types.CallbackQuery, state: FSMContext):
     async with ClientSession() as session:
         try:
             await callback.message.edit_reply_markup(reply_markup=None)
-            response = await fetch(session, f'{BACKEND_API_URL}/api/purchase', data=params, method='POST', headers=headers)
+            response = await fetch(
+                session, f'{BACKEND_API_URL}/api/purchase', data=params,
+                method='POST', headers=headers
+            )
             formatted_response = '\n'.join(format_response(response))
-            await callback.message.answer(f'Результат покупки:\n{formatted_response}')
+            await callback.message.answer(
+                f'Результат покупки:\n{formatted_response}'
+            )
         except Exception as e:
             await callback.message.answer(f'Ошибка при покупке: {e}')
         finally:
             await state.clear()
-            await callback.message.answer(text='Введите новый IMEI', reply_markup=k.keyboard)
-
+            await callback.message.answer(
+                text='Введите новый IMEI', reply_markup=k.keyboard
+            )

@@ -24,7 +24,10 @@ def verify_api_key(api_key: str = Depends(api_key_header)):
         )
 
 
-@router.post('/api/check-imei', dependencies=[Depends(verify_api_key)], response_model=Services)
+@router.post(
+        '/api/check-imei', dependencies=[Depends(verify_api_key)],
+        response_model=Services
+)
 def check_imei(imei: str):
     """Проверка доступных услуг"""
     balance = srv.check_balance()

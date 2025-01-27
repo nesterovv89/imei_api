@@ -10,7 +10,6 @@ Base = declarative_base()
 logging.basicConfig(level=logging.INFO)
 
 
-
 class Profile(Base):
     __tablename__ = 'profile'
 
@@ -34,7 +33,7 @@ async def is_user_whitelisted(user_id):
     async with async_session() as session:
         result = await session.execute(select(Profile).where(Profile.user_id == user_id))
         return result.scalars().first() is not None
-    
+
 
 async def add_user_to_whitelist(user_id):
     """Добавление пользователя в БД"""

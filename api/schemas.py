@@ -3,7 +3,6 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 
-
 class ServiceItem(BaseModel):
     id: int
     title: str
@@ -12,5 +11,5 @@ class ServiceItem(BaseModel):
 
 
 class Services(BaseModel):
-   services: List[ServiceItem]
-   balance: str
+    services: List[ServiceItem]
+    balance: str

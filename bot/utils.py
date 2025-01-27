@@ -10,7 +10,7 @@ class ImeiFilter(Filter):
         if message.text:
             return bool(re.match(r'^\d{8,15}$', message.text))
         return False
-    
+
 
 def format_response(data, indent=0):
     """Функция для форматирования ответа"""
@@ -26,6 +26,8 @@ def format_response(data, indent=0):
 
 async def fetch(session, url, data=None, method='GET', headers=None):
     """Функция для выполнения асинхронного запроса"""
-    async with session.request(method, url, params=data, headers=headers) as response:
+    async with session.request(
+        method, url, params=data, headers=headers
+    ) as response:
         response.raise_for_status()
         return await response.json()
